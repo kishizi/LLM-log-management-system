@@ -17,12 +17,14 @@ public:
     explicit ollamacilent(QObject *parent = nullptr);
     void generate(const QString &prompt, const QString &model = "llama2");
     void onFinished();
+    //QString result(){return result;}
 
 signals:
-
+    void resultReady(const QString &result);
 
 private:
     QNetworkAccessManager* manager;
+    QString result;
 
 };
 

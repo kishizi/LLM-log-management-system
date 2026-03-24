@@ -6,13 +6,16 @@
 
 int main(int argc, char *argv[])
 {
-    //QApplication a(argc, argv);
+    QApplication a(argc, argv);
     //MainWindow w;
     //w.show();
 
-    QCoreApplication a(argc, argv);
-    ollamacilent client;
-    client.generate("ollama");
+    //QCoreApplication a(argc, argv);
+
+    MainWindow w;
+    w.show();
+    //ollamacilent client;
+    //client.generate("ollama");
     return a.exec();
 
 }

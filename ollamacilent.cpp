@@ -23,6 +23,7 @@ void ollamacilent::generate(const QString &prompt, const QString &model)
     json["model"] = model;
     json["prompt"] = prompt;
     json["stream"] = false;  // 关闭流式输出，一次性获取完整响应
+    //json["stream"] = true;
 
     QJsonDocument doc(json);
     QByteArray data = doc.toJson();
@@ -35,6 +36,9 @@ void ollamacilent::generate(const QString &prompt, const QString &model)
 void ollamacilent::onFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    //QString s = "error";
+
+    //if (!reply) return s;
     if (!reply) return;
 
     if (reply->error() == QNetworkReply::NoError) {
@@ -44,12 +48,19 @@ void ollamacilent::onFinished()
 
         // 提取响应文本（Ollama的响应字段为"response"）
         QString result = jsonObject["response"].toString();
-        qDebug() << "Ollama Response:" << result;
+        qDebug() << "Ollama Response:" << result<<"\n";
+        emit resultReady(result);
+
+        //reply->deleteLater();
+        //return result;
     } else {
+
+        //reply->deleteLater();
         qDebug() << "Error:" << reply->errorString();
+        //return reply->errorString();
     }
 
     reply->deleteLater();
-    QCoreApplication::quit(); // 退出事件循环（仅控制台程序）
+    //QCoreApplication::quit(); // 退出事件循环（仅控制台程序）
 }
 

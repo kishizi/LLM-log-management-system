@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTextEdit" name="textEdit">
+   <widget class="QTextEdit" name="Txa">
     <property name="geometry">
      <rect>
       <x>110</x>
@@ -24,11 +24,11 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="TxaB">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>440</y>
+      <x>470</x>
+      <y>430</y>
       <width>93</width>
       <height>31</height>
      </rect>
@@ -42,8 +42,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>611</width>
-      <height>381</height>
+      <width>401</width>
+      <height>71</height>
      </rect>
     </property>
    </widget>
@@ -58,6 +58,16 @@
     </property>
     <property name="text">
      <string>查询</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="Tx">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>160</y>
+      <width>501</width>
+      <height>231</height>
+     </rect>
     </property>
    </widget>
   </widget>
