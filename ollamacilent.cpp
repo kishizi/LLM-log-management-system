@@ -13,6 +13,7 @@ void ollamacilent::generate(const QString &prompt, const QString &model)
 {
     // 构建请求URL（默认Ollama地址）
     QUrl url("http://localhost:11434/api/generate");
+    //QUrl url("http://localhost:11434/api/chat");
     //QUrl url("https://ollama.com/api");
     //QUrl url("http://localhost:11434/api");
     QNetworkRequest request(url);
@@ -28,6 +29,8 @@ void ollamacilent::generate(const QString &prompt, const QString &model)
     QJsonDocument doc(json);
     QByteArray data = doc.toJson();
 
+    //qDebug()<<data;
+
     // 发送POST请求
     QNetworkReply *reply = manager->post(request, data);
     connect(reply, &QNetworkReply::finished, this, &ollamacilent::onFinished);
@@ -36,9 +39,7 @@ void ollamacilent::generate(const QString &prompt, const QString &model)
 void ollamacilent::onFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    //QString s = "error";
 
-    //if (!reply) return s;
     if (!reply) return;
 
     if (reply->error() == QNetworkReply::NoError) {
@@ -46,21 +47,25 @@ void ollamacilent::onFinished()
         QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
         QJsonObject jsonObject = jsonResponse.object();
 
+
         // 提取响应文本（Ollama的响应字段为"response"）
+
+
         QString result = jsonObject["response"].toString();
-        qDebug() << "Ollama Response:" << result<<"\n";
+        //QString response = jsonObject["response"].toString();   // 取最终回答
+        QString thinking = jsonObject["thinking"].toString();   // 可选，显示思考过程
+
+        qDebug() << "Ollama Response:" << result;
+        //qDebug() << "Ollama Response:" <<thinking<<result<<"\n";
+
+
         emit resultReady(result);
 
-        //reply->deleteLater();
-        //return result;
     } else {
 
-        //reply->deleteLater();
         qDebug() << "Error:" << reply->errorString();
-        //return reply->errorString();
     }
 
     reply->deleteLater();
-    //QCoreApplication::quit(); // 退出事件循环（仅控制台程序）
 }
 

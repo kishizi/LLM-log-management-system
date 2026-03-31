@@ -1,3 +1,4 @@
+//ollama客户端，大模型api接入
 #ifndef OLLAMACILENT_H
 #define OLLAMACILENT_H
 
@@ -15,7 +16,8 @@ class ollamacilent : public QObject
     Q_OBJECT
 public:
     explicit ollamacilent(QObject *parent = nullptr);
-    void generate(const QString &prompt, const QString &model = "llama2");
+    //void generate(const QString &prompt, const QString &model = "llama2");
+    void generate(const QString &prompt, const QString &model = "qwen3.5:2b");
     void onFinished();
     //QString result(){return result;}
 

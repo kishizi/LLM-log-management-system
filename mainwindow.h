@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "ollamacilent.h"
+#include <QStackedWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,6 +20,8 @@ public:
     ~MainWindow();
 
     void handleresult(const QString &result);
+    void handstackchange_api();
+    void handstackchange_db();
 
 private slots:
     void on_Tx_textChanged();

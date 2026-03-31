@@ -11,13 +11,29 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(oc,&ollamacilent::resultReady, this,&MainWindow::handleresult);
+    //点击切换
+    QAction *mapi = new QAction("mapi",this);
+    ui->menubar->addAction(mapi);
+    QAction *db = new QAction("db",this);
+    ui->menubar->addAction(db);
+
+    connect(ui->menu_api,&QMenu::aboutToShow,this,&MainWindow::handstackchange_api);
+    connect(mapi,&QAction::triggered,this,&MainWindow::handstackchange_api);
+    connect(db,&QAction::triggered,this,&MainWindow::handstackchange_db);
+
+    //abouttoshow式切换
+    //connect(ui->menu_db,&QMenu::aboutToShow,this,&MainWindow::handstackchange_db);
+    //connect(oc,&ollamacilent::resultReady, this,&MainWindow::handleresult);
+
+
+
+
 
     //qDebug() << QSqlDatabase::drivers();
     //ollamacilent client;
     //oc->generate("鲁迅是谁");
 
-
+    //this->setCentralWidget(new QStackedWidget);
 }
 
 MainWindow::~MainWindow()
@@ -29,6 +45,18 @@ void MainWindow::handleresult(const QString &result)
 {
     qDebug()<<"sucess/n";
     ui->Tx->setText(result);
+}
+
+void MainWindow::handstackchange_db()
+{
+    //qDebug()<<"cahnge_db";
+    ui->stackedWidget->setCurrentIndex(1);
+}
+
+void MainWindow::handstackchange_api()
+{
+    //qDebug()<<"cahnge_api";
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
 void MainWindow::on_Tx_textChanged()

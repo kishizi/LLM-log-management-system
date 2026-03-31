@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
+    qDebug()<<"Sql available drives::"<< QSqlDatabase::drivers();
     //ollamacilent client;
     //client.generate("ollama");
     return a.exec();
