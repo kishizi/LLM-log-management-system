@@ -14,9 +14,26 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
-    qDebug()<<"Sql available drives::"<< QSqlDatabase::drivers();
+
+    //命令行打印qt支持数据库驱动
+    //qDebug()<<"Sql available drives::"<< QSqlDatabase::drivers();
+
+
     //ollamacilent client;
     //client.generate("ollama");
+
+
+    // db = QSqlDatabase::addDatabase("QSQLITE");
+    // db.setDatabaseName("log.db");
+
+    // db.close();
+    // db.removeDatabase("log.db");
+    // if(!db.open())
+    // {
+    //     qDebug()<< "open error"<<db.lastError().text();
+    //     return -1;
+    // }
+
     return a.exec();
 
 }

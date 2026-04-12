@@ -12,3 +12,8 @@ itemform::~itemform()
 {
     delete ui;
 }
+
+void itemform::setStaffInfo(QString name)
+{
+    ui->name_label->setText(name);
+}
