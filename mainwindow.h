@@ -24,12 +24,17 @@ public:
     void handleresult(const QString &result);
     void handstackchange_api();
     void handstackchange_db();
+    void handstackchange_log();
 
 public slots:
     void showList(const QStringList &list);
+    //列表选择后触发
+    void selected_handle(const QVariant &name);
 
 signals:
     void TbListBt_show_tables();
+
+    void set_find_enabled(const QString &name);
 
 private slots:
     void on_Tx_textChanged();

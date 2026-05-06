@@ -1,5 +1,6 @@
 #include "database.h"
 #include "ui_database.h"
+#include "ui_mainwindow.h"
 #include <QSqlIndex>
 
 DataBase::DataBase(QWidget *parent)
@@ -9,24 +10,40 @@ DataBase::DataBase(QWidget *parent)
 {
     ui->setupUi(this);
 
-
     //db.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/test.db");
-     db = QSqlDatabase::addDatabase("QSQLITE");
-     db.setDatabaseName("log.db");
-
-     //初始创建表的语句
-     //QSqlQuery query;
-     //query.exec("CREATE TABLE IF NOT EXISTS person (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)");
+    //sqlite数据库连接
+     /*db = QSqlDatabase::addDatabase("QSQLITE","main_conn");
+     db.setDatabaseName("log.db");*/
 
 
-    if(!db.open())
+    //mysql数据库连接
+    /*db = QSqlDatabase::addDatabase("QMYSQL","main_conn");
+    db.setHostName("127.0.0.1");
+    db.setPort(3306);
+    db.setDatabaseName("log");
+    db.setUserName("root");
+    db.setPassword("wrq3108622478.");*/
+
+    //qDebug()<<"startExport:"<<"连接执行完毕";
+
+
+
+
+
+     //db.setHostName(QHostAddress::LocalHost());
+
+    /*if(!db.open())
     {
         qDebug()<< "open error"<<db.lastError().text();
 
-    }
+    }*/
+
+    //初始创建表的语句
+    //QSqlQuery query;
+    //query.exec("CREATE TABLE IF NOT EXISTS person (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)");
 
     model = new QSqlTableModel(this,db);
-    model->setTable("person");
+    //model->setTable("person");
 
 
 }
@@ -67,6 +84,101 @@ void DataBase::model_analyse_db()
 {
 
 }
+//导出数据库文件
+void DataBase::exportModelToCsv(const QString &name)
+{
+    qDebug()<<"导出数据库csv文件";
+
+
+    QString filePath = QFileDialog::getSaveFileName(this, "导出 CSV", "", "CSV 文件 (*.csv)");
+    if (filePath.isEmpty()) return;
+    if (!filePath.endsWith(".csv", Qt::CaseInsensitive))
+        filePath += ".csv";
+
+    //QFuture<void> future = QtConcurrent::run(startExport,filePath);
+
+
+    QFutureWatcher<void> *watcher = new QFutureWatcher<void>(this);
+    connect(watcher, &QFutureWatcher<void>::finished, this, [this, watcher]() {
+        QMessageBox::information(this, "导出", "文件写入完成！");
+        watcher->deleteLater();
+    });
+
+
+    QFuture<void> future = QtConcurrent::run(&DataBase::startExport, this, filePath, name);
+
+
+    watcher->setFuture(future);
+}
+
+
+
+//线程不处理gui操作，线程中仅处理写入数据
+void DataBase::startExport(const QString &filePath,const QString &tbname)
+{
+    //tbname为传入的选中表列参数
+    qDebug()<<"startExport:"<<"线程进入成功";
+
+    //设置新的数据库连接
+    //to do.....
+    QSqlDatabase Ex_db = QSqlDatabase::addDatabase("QSQLITE","export_conn");
+    Ex_db.setDatabaseName("log.db");
+    if(!Ex_db.open())
+    {
+        qDebug() << "导出线程数据库打开失败";
+        return;
+    }
+
+
+    QSqlTableModel *Ex_model = new QSqlTableModel(this,Ex_db);
+    Ex_model->setTable(tbname);
+
+    Ex_model->select();
+
+    QFile file(filePath);
+    qDebug()<<filePath;
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        // 打开失败处理……
+        qDebug()<<"文件创建失败";
+        return;
+    }
+
+    QTextStream out(&file);
+
+    //out.setCodec("UTF-8"); // 设置编码
+
+    qDebug()<<"startExport:"<<tbname<<"QTextStream out 设置成功";
+    // 写入表头
+    QStringList headers;
+    for (int col = 0; col < Ex_model->columnCount(); ++col) {
+        headers << Ex_model->headerData(col, Qt::Horizontal).toString();
+    }
+    out << headers.join(",") << "\n";
+
+    // 一次性遍历所有行
+    for (int row = 0; row < Ex_model->rowCount(); ++row) {
+        QStringList rowData;
+        for (int col = 0; col < Ex_model->columnCount(); ++col) {
+            QString cell = Ex_model->data(Ex_model->index(row, col)).toString();
+            // 简单处理 CSV 里的特殊字符
+            cell.replace("\"", "\"\"");
+            if (cell.contains(",") || cell.contains("\"") || cell.contains("\n"))
+                cell = "\"" + cell + "\"";
+            rowData << cell;
+        }
+        out << rowData.join(",") << "\n";
+    }
+
+
+    file.close();  // 收尾
+
+
+    //用完清理
+    QSqlDatabase::removeDatabase("export_conn");
+}
+
+
 
 void DataBase::on_find_clicked()
 {
@@ -76,6 +188,8 @@ void DataBase::on_find_clicked()
 
     //QSqlTableModel *model = new QSqlTableModel(this,db);
     //model->setTable("person");       // 添加表（设置表名）
+
+    //model->setTable("person");
 
     qDebug()<<"model: "<<model;
 
@@ -133,5 +247,58 @@ void DataBase::TbListBt_handle()
     }
 
     emit showList(tables);
+}
+
+void DataBase::set_find_ennable(const QString &name)
+{
+    model->setTable(name);
+    ui->find->setEnabled(true);
+
+    //选择好表名后，数据导出页面按钮激活，传递表名参数
+    emit logreport_fd_bt_enabled(name);
+}
+
+void DataBase::sqlite_connect(const QString &type,const QString &databasename)
+{
+    //sqlite数据库连接
+     db = QSqlDatabase::addDatabase(type,"main_conn");
+     db.setDatabaseName(databasename);
+
+     if(!db.open())
+     {
+         qDebug()<< "open error"<<db.lastError().text();
+
+     }
+
+     //如果失败，传递参数回login
+     //to do...
+
+     //如果成功，传递信号给window切换页面
+     //to do....
+
+}
+
+void DataBase::mysql_connect(const QString &type,const QString &hostname,const QString &port,
+                             const QString &databasename,const QString &username,const QString &password)
+{
+    //mysql数据库连接
+    db = QSqlDatabase::addDatabase(type,"main_conn");
+    db.setHostName(hostname);
+    db.setPort(port.toInt());
+    db.setDatabaseName(databasename);
+    db.setUserName(username);
+    db.setPassword(password);
+
+    if(!db.open())
+    {
+        qDebug()<< "open error"<<db.lastError().text();
+
+    }
+    //如果失败，传递参数回login
+    //to do...
+
+
+    //如果成功，传递信号给window切换页面
+    //to do....
 }
 

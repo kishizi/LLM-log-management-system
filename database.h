@@ -7,6 +7,15 @@
 #include <QSqlError>
 #include <QTableView>
 #include <QSqlTableModel>
+#include <QFile>
+#include <QDialog>
+#include <QFileDialog>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrent/QtConcurrent>
+#include <QTextStream>
+#include <QtConcurrent>
+#include <QMessageBox>
+
 
 namespace Ui {
 class DataBase;
@@ -25,9 +34,13 @@ public:
 
     void model_operate_db();//大模型使用sql语句对数据库进行操作
     void model_analyse_db();//大模型分析报告
+    void exportModelToCsv(const QString &name);//导出当前数据库文件
+    void startExport(const QString &filePath, const QString &tbname);//放在exportModelToCsv()里
 
 signals:
     void showList(const QStringList &list);
+
+    void logreport_fd_bt_enabled(const QString &name);
 
 
 private slots:
@@ -38,6 +51,14 @@ private slots:
 
 public slots:
     void TbListBt_handle();
+
+    void set_find_ennable(const QString &name);
+
+    void sqlite_connect(const QString &type,const QString &databasename);
+
+
+    void mysql_connect(const QString &type,const QString &hostname,const QString &port,
+                       const QString &databasename,const QString &username,const QString &password);
 
 private:
     Ui::DataBase *ui;

@@ -13,30 +13,45 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     //点击切换
-    QAction *mapi = new QAction("mapi",this);
+    QAction *mapi = new QAction("大模型问答界面",this);
     ui->menubar->addAction(mapi);
-    QAction *db = new QAction("db",this);
+    QAction *db = new QAction("数据库手动操作界面",this);
     ui->menubar->addAction(db);
+    QAction *log = new QAction("日志生成界面",this);
+    ui->menubar->addAction(log);
 
-    connect(ui->menu_api,&QMenu::aboutToShow,this,&MainWindow::handstackchange_api);
+
+
+    //connect(ui->menu_api,&QMenu::aboutToShow,this,&MainWindow::handstackchange_api);
     connect(mapi,&QAction::triggered,this,&MainWindow::handstackchange_api);
     connect(db,&QAction::triggered,this,&MainWindow::handstackchange_db);
+    connect(log,&QAction::triggered,this,&MainWindow::handstackchange_log);
     connect(this,&MainWindow::TbListBt_show_tables,ui->TbList,&DataBase::TbListBt_handle);
     connect(ui->TbList,&DataBase::showList,this,&MainWindow::showList);
-
+    connect(this,&MainWindow::set_find_enabled,ui->TbList,&DataBase::set_find_ennable);
     //abouttoshow式切换
     //connect(ui->menu_db,&QMenu::aboutToShow,this,&MainWindow::handstackchange_db);
     connect(oc,&ollamacilent::resultReady, this,&MainWindow::handleresult);
 
+    connect(ui->logreport_widget,&LogReport::exportModelToCsv,ui->TbList,&DataBase::exportModelToCsv);//导出数据库csv文件
+
+    connect(ui->TbList,&DataBase::logreport_fd_bt_enabled,ui->logreport_widget,&LogReport::fd_bt_set_enabled);
+
+    connect(ui->login_widget,&Login::mysql_connect,ui->TbList,&DataBase::mysql_connect);
+    connect(ui->login_widget,&Login::sqlite_connect,ui->TbList,&DataBase::sqlite_connect);
+    //connect()
 
 
 
 
-    //qDebug() << QSqlDatabase::drivers();
+
+    qDebug() << QSqlDatabase::drivers();
     //ollamacilent client;
     //oc->generate("鲁迅是谁");
 
     //this->setCentralWidget(new QStackedWidget);
+    ui->statusbar->hide();
+    ui->menubar->hide();
 }
 
 MainWindow::~MainWindow()
@@ -57,32 +72,70 @@ void MainWindow::handstackchange_db()
     ui->stackedWidget->setCurrentIndex(1);
 }
 
+void MainWindow::handstackchange_log()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+}
+
 //声明itemform实例放入QListWidget
 void MainWindow::showList(const QStringList &list)
 {
     ui->listWidget->clear();
-    int i = 0;
+    //int i = 0;
 
     for (const QString &name :list)  {
-        itemform* staffItem = new itemform;
-        staffItem->setStaffInfo(name);
+        //itemform* staffItem = new itemform;
+        //staffItem->setStaffInfo(name);
 
         QListWidgetItem* item = new QListWidgetItem;
 
-        //item->setSizeHint(QSize(150,50));
-        item->setSizeHint(staffItem->size());
-        item->setData(Qt::UserRole,i);
-        //item->setSizeHint(staffItem->sizeHint());
 
+        item->setData(Qt::UserRole,name);
+
+
+        itemform* staffItem = new itemform(item);
+        connect(staffItem,&itemform::selected,this,&MainWindow::selected_handle);
+
+        staffItem->setStaffInfo(name);
+
+        item->setSizeHint(staffItem->size());
 
         ui->listWidget->addItem(item);
         ui->listWidget->setItemWidget(item,staffItem);
 
+        //connect(staffItem,&itemform::selected,this,&MainWindow::selected_handle);
+
         //item没有信号，靠listwidget
         //connect(item,&QListWidgetItem::isSelected,)
-        i++;
     }
 
+}
+
+//表列项被选择中触发
+void MainWindow::selected_handle(const QVariant& name)
+{
+    //qDebug()<<name;
+
+    if (!name.isValid()) {
+        qDebug() << "无效的 QVariant";
+        return;
+    }
+
+    // 检查能否转为 QString
+    QString str;
+    if (name.canConvert<QString>()) {
+        str = name.value<QString>();
+        //qDebug() << "成功提取字符串:" << str;
+    } else {
+        qDebug() << "无法转换为 QString，当前类型为:" << name.metaType().name();
+    }
+
+    qDebug()<<str;
+
+    //传给
+
+    //传给database,传递选择名字，激活按钮
+    emit set_find_enabled(str);
 }
 
 //设置界面为大模型问答界面
