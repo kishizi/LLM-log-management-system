@@ -23,6 +23,7 @@ void LogReport::on_export_button_clicked()
 void LogReport::fd_bt_set_enabled(const QString &name)
 {
     ui->tb_label->setText("当前选择项："+name);
+    ui->plainTextEdit->setPlainText("生成"+name+"日志");
     _tbname = name;
     ui->export_button->setEnabled(true);
 

@@ -2,6 +2,9 @@
 #define LOGIN_H
 
 #include <QWidget>
+#include <QFileDialog>
+#include "database.h"
+#include "warningdialog.h"
 
 namespace Ui {
 class Login;
@@ -30,6 +33,8 @@ private slots:
     void on_bt_clear_clicked();
 
     void on_bt_ok_clicked();
+
+    void on_getfilename_Button_clicked();
 
 private:
     Ui::Login *ui;

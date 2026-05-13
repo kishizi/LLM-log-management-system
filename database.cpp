@@ -10,51 +10,37 @@ DataBase::DataBase(QWidget *parent)
 {
     ui->setupUi(this);
 
-    //db.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/test.db");
-    //sqlite数据库连接
-     /*db = QSqlDatabase::addDatabase("QSQLITE","main_conn");
-     db.setDatabaseName("log.db");*/
-
-
-    //mysql数据库连接
-    /*db = QSqlDatabase::addDatabase("QMYSQL","main_conn");
-    db.setHostName("127.0.0.1");
-    db.setPort(3306);
-    db.setDatabaseName("log");
-    db.setUserName("root");
-    db.setPassword("wrq3108622478.");*/
-
-    //qDebug()<<"startExport:"<<"连接执行完毕";
+    //快捷方式触发
+    //refresh
+    QShortcut *shortcut1 = new QShortcut(QKeySequence("space"), this);
+    connect(shortcut1, &QShortcut::activated, ui->refresh, &QPushButton::click);
+    //find
+    QShortcut *shortcut2 = new QShortcut(QKeySequence("F"), this);
+    connect(shortcut2, &QShortcut::activated, ui->find, &QPushButton::click);
 
 
 
-
-
-     //db.setHostName(QHostAddress::LocalHost());
-
-    /*if(!db.open())
-    {
-        qDebug()<< "open error"<<db.lastError().text();
-
-    }*/
 
     //初始创建表的语句
     //QSqlQuery query;
     //query.exec("CREATE TABLE IF NOT EXISTS person (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)");
-
-    model = new QSqlTableModel(this,db);
-    //model->setTable("person");
 
 
 }
 
 DataBase::~DataBase()
 {
-    db.close();
-    db.removeDatabase("log.db");
-
+    model->clear();
+    delete model;
     delete ui;
-    //db.close();
+
+    db.close();
+
+    db = QSqlDatabase();   // 赋值为无效数据库对象
+
+    QSqlDatabase::removeDatabase("main_conn");
+
+
 }
 
 //tableview显示方法，qt封装
@@ -72,7 +58,10 @@ void DataBase::add()
 
 void DataBase::delete_db()
 {
-
+    // 删除当前选中行
+    int curRow = ui->tableView->currentIndex().row();
+    model->removeRow(curRow);
+    model->submitAll(); // 若策略为 OnManualSubmit 则需调用
 }
 
 void DataBase::model_operate_db()
@@ -105,7 +94,7 @@ void DataBase::exportModelToCsv(const QString &name)
     });
 
 
-    QFuture<void> future = QtConcurrent::run(&DataBase::startExport, this, filePath, name);
+    QFuture<void> future = QtConcurrent::run(&DataBase::startExport, this, filePath, name, m_type,m_database);
 
 
     watcher->setFuture(future);
@@ -114,26 +103,55 @@ void DataBase::exportModelToCsv(const QString &name)
 
 
 //线程不处理gui操作，线程中仅处理写入数据
-void DataBase::startExport(const QString &filePath,const QString &tbname)
+void DataBase::startExport(const QString &filePath,const QString &tbname,const QString &type,const QString &databasename)
 {
     //tbname为传入的选中表列参数
     qDebug()<<"startExport:"<<"线程进入成功";
 
     //设置新的数据库连接
     //to do.....
-    QSqlDatabase Ex_db = QSqlDatabase::addDatabase("QSQLITE","export_conn");
-    Ex_db.setDatabaseName("log.db");
+    //QSqlDatabase Ex_db = QSqlDatabase::addDatabase("QSQLITE","export_conn");
+    qDebug()<<"打印数据库名和连接类型："<<databasename<<type;
+
+    QSqlDatabase Ex_db = QSqlDatabase::addDatabase(type,"export_conn");
+    if(type == "QSQLITE")
+    {
+
+        Ex_db.setDatabaseName(databasename);
+    }
+    if(type == "QMYSQL")
+    {
+        Ex_db.setHostName(m_hostname);
+        Ex_db.setPort(m_port.toInt());
+        Ex_db.setDatabaseName(databasename);
+        Ex_db.setUserName(m_username);
+        Ex_db.setPassword(m_password);
+
+    }
+
     if(!Ex_db.open())
     {
         qDebug() << "导出线程数据库打开失败";
+        qDebug()<< "open error"<<db.lastError().text();
+        QSqlDatabase::removeDatabase("export_conn");  // 退出前清理
+
         return;
     }
 
+    //保证退出时删除连接
+    auto cleanup = [&]() {
+        Ex_db.close();
+        QSqlDatabase::removeDatabase("export_conn");
+    };
 
-    QSqlTableModel *Ex_model = new QSqlTableModel(this,Ex_db);
+    //QSqlTableModel *Ex_model = new QSqlTableModel(nullptr,Ex_db);
+    std::unique_ptr<QSqlTableModel> Ex_model(new QSqlTableModel(nullptr, Ex_db));
     Ex_model->setTable(tbname);
 
     Ex_model->select();
+    while (Ex_model->canFetchMore()) {
+        Ex_model->fetchMore();
+    }
 
     QFile file(filePath);
     qDebug()<<filePath;
@@ -173,23 +191,45 @@ void DataBase::startExport(const QString &filePath,const QString &tbname)
 
     file.close();  // 收尾
 
+    Ex_model.reset();
+}
 
-    //用完清理
-    QSqlDatabase::removeDatabase("export_conn");
+void DataBase::warnning(const QString &text)
+{
+    //失败后弹出失败信息对话框
+    WarningDialog *dlg = new WarningDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);  // 关闭时自动删除
+    dlg->setWindowTitle("提示");
+    dlg->settext(text);
+    dlg->exec();
+}
+
+void DataBase::loaddata()
+{
+    const int rows = 200;//一批次固定200行
+    const int cols = model->columnCount();
+
+    for (int col = 0; col < cols; ++col) {
+        m_dataheader << model->headerData(col, Qt::Horizontal).toString();
+    }
+
+
+    // 工作线程中
+    /*QStringList batchList;
+    for (const auto& row : batchRows) {
+        batchList << formatLog(row); // 格式化为 "[时间] [级别] 消息"
+    }
+    QString prompt = batchList.join("\n"); // 拼接成一个多行字符串
+
+    // 然后调用发送函数
+    sendToOllama(prompt);*/
+
 }
 
 
 
 void DataBase::on_find_clicked()
 {
-    //QSqlQuery query;
-    //query.exec("CREATE TABLE IF NOT EXISTS person (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)");
-
-
-    //QSqlTableModel *model = new QSqlTableModel(this,db);
-    //model->setTable("person");       // 添加表（设置表名）
-
-    //model->setTable("person");
 
     qDebug()<<"model: "<<model;
 
@@ -223,12 +263,13 @@ void DataBase::on_find_clicked()
 
 
 
-
+//往最下方加一行数据
 void DataBase::on_add_clicked()
 {
-    //int row = model->rowCount();  // 末尾插入
-    //model->insertRow(row);
+    int row = model->rowCount();  // 末尾插入
+    model->insertRow(row);
 
+    model->submitAll();
 
 }
 
@@ -249,6 +290,7 @@ void DataBase::TbListBt_handle()
     emit showList(tables);
 }
 
+//激活find按钮
 void DataBase::set_find_ennable(const QString &name)
 {
     model->setTable(name);
@@ -268,19 +310,36 @@ void DataBase::sqlite_connect(const QString &type,const QString &databasename)
      {
          qDebug()<< "open error"<<db.lastError().text();
 
+         //失败后弹出失败信息对话框
+         warnning(db.lastError().text());
+
+     }
+     else
+     {
+
+         //如果成功，传递信号给window切换页面
+         //to do....
+         m_type = "QSQLITE";
+         m_database = databasename;
+         emit db_open_success();
      }
 
-     //如果失败，传递参数回login
-     //to do...
+      //设置ui显示type类型
+     ui->label_type->setText(m_type);
 
-     //如果成功，传递信号给window切换页面
-     //to do....
+    model = new QSqlTableModel(this,db);
 
 }
 
 void DataBase::mysql_connect(const QString &type,const QString &hostname,const QString &port,
                              const QString &databasename,const QString &username,const QString &password)
 {
+
+    qDebug()<<type<<hostname<<port.toInt()<<databasename<<username<<password;
+
+
+
+
     //mysql数据库连接
     db = QSqlDatabase::addDatabase(type,"main_conn");
     db.setHostName(hostname);
@@ -289,16 +348,53 @@ void DataBase::mysql_connect(const QString &type,const QString &hostname,const Q
     db.setUserName(username);
     db.setPassword(password);
 
+
     if(!db.open())
     {
         qDebug()<< "open error"<<db.lastError().text();
 
+        //失败后弹出失败信息对话框
+         warnning(db.lastError().text());
     }
-    //如果失败，传递参数回login
-    //to do...
+    else
+    {
+        //如果成功，传递信号给window切换页面
+        //to do....
+         //设置database全局变量
+        m_type = "QMYSQL";
+        m_database = databasename;
+        m_hostname = hostname;
+        m_port = port;
+        m_username = username;
+        m_password = password;
+        emit db_open_success();
+
+    }
+
+    //设置ui显示type类型
+     ui->label_type->setText(m_type);
 
 
-    //如果成功，传递信号给window切换页面
-    //to do....
+    model = new QSqlTableModel(this,db);
+}
+
+
+void DataBase::on_remove_clicked()
+{
+    // 删除当前选中行
+    int curRow = ui->tableView->currentIndex().row();
+    model->removeRow(curRow);
+    model->submitAll(); // 若策略为 OnManualSubmit 则需调用
+
+}
+
+
+void DataBase::on_refresh_clicked()
+{
+    model->submitAll();
+    model->select();
+
+    ui->tableView->show();
+
 }
 

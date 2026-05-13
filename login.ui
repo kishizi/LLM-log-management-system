@@ -62,7 +62,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_2">
@@ -84,16 +84,16 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>10</y>
+       <y>30</y>
        <width>401</width>
-       <height>281</height>
+       <height>271</height>
       </rect>
      </property>
      <widget class="QLabel" name="label_3">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>30</y>
+        <x>10</x>
+        <y>70</y>
         <width>111</width>
         <height>19</height>
        </rect>
@@ -105,8 +105,8 @@
      <widget class="QLabel" name="label_4">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>70</y>
+        <x>10</x>
+        <y>110</y>
         <width>69</width>
         <height>19</height>
        </rect>
@@ -118,8 +118,8 @@
      <widget class="QLabel" name="label_5">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>110</y>
+        <x>10</x>
+        <y>150</y>
         <width>141</width>
         <height>19</height>
        </rect>
@@ -131,8 +131,8 @@
      <widget class="QLabel" name="label_6">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>150</y>
+        <x>10</x>
+        <y>190</y>
         <width>111</width>
         <height>19</height>
        </rect>
@@ -144,8 +144,8 @@
      <widget class="QLabel" name="label_7">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>190</y>
+        <x>10</x>
+        <y>230</y>
         <width>101</width>
         <height>19</height>
        </rect>
@@ -158,23 +158,16 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>30</y>
-        <width>211</width>
-        <height>25</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineEdit_port">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
         <y>70</y>
         <width>211</width>
         <height>25</height>
        </rect>
       </property>
+      <property name="text">
+       <string>127.0.0.1</string>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_DataBaseName">
+     <widget class="QLineEdit" name="lineEdit_port">
       <property name="geometry">
        <rect>
         <x>170</x>
@@ -183,8 +176,11 @@
         <height>25</height>
        </rect>
       </property>
+      <property name="text">
+       <string>3306</string>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_username">
+     <widget class="QLineEdit" name="lineEdit_DataBaseName">
       <property name="geometry">
        <rect>
         <x>170</x>
@@ -193,8 +189,11 @@
         <height>25</height>
        </rect>
       </property>
+      <property name="text">
+       <string>log</string>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_password">
+     <widget class="QLineEdit" name="lineEdit_username">
       <property name="geometry">
        <rect>
         <x>170</x>
@@ -203,6 +202,35 @@
         <height>25</height>
        </rect>
       </property>
+      <property name="text">
+       <string>root</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_password">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>230</y>
+        <width>211</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>wrq3108622478.</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_12">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>69</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>mysql:</string>
+      </property>
      </widget>
     </widget>
    </widget>
@@ -210,8 +238,8 @@
     <widget class="QWidget" name="widget_2" native="true">
      <property name="geometry">
       <rect>
-       <x>29</x>
-       <y>39</y>
+       <x>20</x>
+       <y>40</y>
        <width>391</width>
        <height>251</height>
       </rect>
@@ -220,23 +248,75 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>50</y>
-        <width>131</width>
-        <height>19</height>
+        <y>180</y>
+        <width>141</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>setDtabaseName:</string>
+       <string>创建新的本地数据库:</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_sqlite_databasename">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>50</y>
-        <width>141</width>
+        <x>120</x>
+        <y>210</y>
+        <width>71</width>
         <height>25</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="getfilename_Button">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>90</y>
+        <width>141</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>从文件夹选取路径</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_9">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>210</y>
+        <width>81</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>请输入库名：</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_10">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>60</y>
+        <width>121</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>打开本地数据库：</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>10</y>
+        <width>69</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>sqlite:</string>
       </property>
      </widget>
     </widget>

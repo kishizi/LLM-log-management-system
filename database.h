@@ -15,7 +15,7 @@
 #include <QTextStream>
 #include <QtConcurrent>
 #include <QMessageBox>
-
+#include <QShortcut>
 
 namespace Ui {
 class DataBase;
@@ -35,12 +35,20 @@ public:
     void model_operate_db();//大模型使用sql语句对数据库进行操作
     void model_analyse_db();//大模型分析报告
     void exportModelToCsv(const QString &name);//导出当前数据库文件
-    void startExport(const QString &filePath, const QString &tbname);//放在exportModelToCsv()里
+    void startExport(const QString &filePath, const QString &tbname, const QString &type, const QString &databasename);//放在exportModelToCsv()里
+
+    void warnning(const QString &text);
+
+    void loaddata();//读取数据
+
 
 signals:
     void showList(const QStringList &list);
 
     void logreport_fd_bt_enabled(const QString &name);
+
+    //void db_open_failed();//数据库打开失败
+    void db_open_success();//数据库打开成功
 
 
 private slots:
@@ -48,6 +56,10 @@ private slots:
     void on_find_clicked();
 
     void on_add_clicked();
+
+    void on_remove_clicked();
+
+    void on_refresh_clicked();
 
 public slots:
     void TbListBt_handle();
@@ -61,10 +73,28 @@ public slots:
                        const QString &databasename,const QString &username,const QString &password);
 
 private:
-    Ui::DataBase *ui;
+
+    //QString data;//存储
+    QStringList m_datalist;//单批处理数据
+    QStringList m_dataheader;
+
+    QString m_type;//连接类型
+    QString m_database;//数据库名
+    QString m_hostname;//ip地址
+    QString m_port;//端口号
+    QString m_username;//用户名
+    QString m_password;//密码
+
     QSqlDatabase db;
-    //QSqlTableModel *model = new QSqlTableModel(this,db);
+
+
+    Ui::DataBase *ui;
     QSqlTableModel *model;
+
+
+
+    //QSqlTableModel *model = new QSqlTableModel(this,db);
+
 
     //申明为成员变量会崩溃？？
     //QSqlQuery query;

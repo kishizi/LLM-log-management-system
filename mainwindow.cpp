@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->login_widget,&Login::mysql_connect,ui->TbList,&DataBase::mysql_connect);
     connect(ui->login_widget,&Login::sqlite_connect,ui->TbList,&DataBase::sqlite_connect);
+
+    connect(ui->TbList,&DataBase::db_open_success,this,&MainWindow::login_in);
     //connect()
 
 
@@ -50,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     //oc->generate("鲁迅是谁");
 
     //this->setCentralWidget(new QStackedWidget);
+    ui->stackedWidget->setCurrentIndex(3);//默认设置登陆界面
     ui->statusbar->hide();
     ui->menubar->hide();
 }
@@ -76,6 +79,23 @@ void MainWindow::handstackchange_log()
 {
     ui->stackedWidget->setCurrentIndex(2);
 }
+
+//日志处理发送线程
+void MainWindow::startNewLogDataProcessing()
+{
+    QThread *thread = new QThread(this);
+    LogdataProcessing *worker = new LogdataProcessing();
+    worker->moveToThread(thread);
+
+    connect(thread, &QThread::started, worker, &LogdataProcessing::dowork);
+    connect(worker, &LogdataProcessing::progressUpdated, this, [this](int v) { });
+    connect(worker, &LogdataProcessing::workFinished, thread, &QThread::quit);
+    connect(worker, &LogdataProcessing::workFinished, worker, &QObject::deleteLater);
+    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+    thread->start();
+}
+
 
 //声明itemform实例放入QListWidget
 void MainWindow::showList(const QStringList &list)
@@ -136,6 +156,13 @@ void MainWindow::selected_handle(const QVariant& name)
 
     //传给database,传递选择名字，激活按钮
     emit set_find_enabled(str);
+}
+
+void MainWindow::login_in()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+    ui->statusbar->show();
+    ui->menubar->show();
 }
 
 //设置界面为大模型问答界面

@@ -113,6 +113,9 @@
      <height>311</height>
     </rect>
    </property>
+   <property name="plainText">
+    <string>当前选择项为空，请选择表项</string>
+   </property>
   </widget>
  </widget>
  <resources/>

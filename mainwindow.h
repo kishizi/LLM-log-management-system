@@ -6,6 +6,8 @@
 #include "ollamacilent.h"
 #include <QStackedWidget>
 #include "itemform.h"
+#include "logdataprocessing.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,10 +28,13 @@ public:
     void handstackchange_db();
     void handstackchange_log();
 
+    void startNewLogDataProcessing();//创建一个新线程开始数据处理，同时日志到发送ollama
 public slots:
     void showList(const QStringList &list);
     //列表选择后触发
     void selected_handle(const QVariant &name);
+
+    void login_in();
 
 signals:
     void TbListBt_show_tables();
